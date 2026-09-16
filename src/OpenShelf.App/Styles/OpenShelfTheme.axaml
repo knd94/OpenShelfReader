@@ -1,0 +1,177 @@
+﻿<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{DynamicResource OpenShelfCanvas}" />
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfText}" />
+    <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+  </Style>
+
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfMuted}" />
+  </Style>
+
+  <Style Selector="TextBlock.eyebrow">
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfAccentStrong}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="LetterSpacing" Value="1.4" />
+  </Style>
+
+  <Style Selector="Button">
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="14,9" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{DynamicResource OpenShelfAccent}" />
+    <Setter Property="Foreground" Value="#0D0919" />
+  </Style>
+
+  <Style Selector="Button.secondary">
+    <Setter Property="Background" Value="{DynamicResource OpenShelfSurfaceRaised}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OpenShelfBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfText}" />
+  </Style>
+
+  <Style Selector="Button.ghost">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfMuted}" />
+  </Style>
+
+  <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#18FFFFFF" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource OpenShelfText}" />
+  </Style>
+
+  <Style Selector="Button.icon">
+    <Setter Property="Width" Value="40" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="FontSize" Value="17" />
+    <Setter Property="Background" Value="{DynamicResource OpenShelfSurfaceRaised}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OpenShelfBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.pageIcon">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+    <Setter Property="FontSize" Value="24" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="Button.nav">
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="12,10" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfMuted}" />
+  </Style>
+
+  <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#12FFFFFF" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource OpenShelfText}" />
+  </Style>
+
+  <Style Selector="Button.card">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Button.card:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#0FFFFFFF" />
+  </Style>
+
+  <Style Selector="TextBox">
+    <Setter Property="Background" Value="{DynamicResource OpenShelfSurfaceRaised}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OpenShelfBorder}" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="11,9" />
+  </Style>
+
+  <Style Selector="ComboBox">
+    <Setter Property="Background" Value="{DynamicResource OpenShelfSurfaceRaised}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OpenShelfBorder}" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <Style Selector="Slider">
+    <Setter Property="MinWidth" Value="120" />
+  </Style>
+
+  <Style Selector="ProgressBar">
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfAccent}" />
+    <Setter Property="Background" Value="{DynamicResource OpenShelfBorder}" />
+  </Style>
+
+  <Style Selector="Border.panel">
+    <Setter Property="Background" Value="{DynamicResource OpenShelfSurface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OpenShelfBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="16" />
+  </Style>
+
+  <Style Selector="Border.reader-panel">
+    <Setter Property="Background" Value="#F412151D" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OpenShelfBorder}" />
+  </Style>
+
+  <Style Selector="ListBox">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="ToolTip">
+    <Setter Property="Background" Value="{DynamicResource OpenShelfSurfaceRaised}" />
+    <Setter Property="Foreground" Value="{DynamicResource OpenShelfText}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource OpenShelfBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="Border.settingsCard">
+    <Setter Property="Padding" Value="18" />
+    <Setter Property="Background" Value="#FF20242E" />
+    <Setter Property="BorderBrush" Value="#FF303644" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+  </Style>
+
+  <Style Selector="TextBlock.settingsLabel">
+    <Setter Property="Foreground" Value="#FFF5F7FB" />
+    <Setter Property="FontSize" Value="14" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="TextBlock.settingsMuted">
+    <Setter Property="Foreground" Value="#FFAAB2C2" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <Style Selector="Border.shortcutKey">
+    <Setter Property="MinWidth" Value="38" />
+    <Setter Property="Padding" Value="8,5" />
+    <Setter Property="Background" Value="#FF2A2F3A" />
+    <Setter Property="BorderBrush" Value="#FF485061" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="7" />
+  </Style>
+
+  <Style Selector="Border.shortcutKey > TextBlock">
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="#FFF5F7FB" />
+    <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, monospace" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+</Styles>

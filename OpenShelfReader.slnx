@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OpenShelf.App/OpenShelf.App.csproj" />
+    <Project Path="src/OpenShelf.Core/OpenShelf.Core.csproj" />
+    <Project Path="src/OpenShelf.Formats/OpenShelf.Formats.csproj" />
+    <Project Path="src/OpenShelf.Infrastructure/OpenShelf.Infrastructure.csproj" />
+    <Project Path="src/OpenShelf.SpeechBroker/OpenShelf.SpeechBroker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OpenShelf.HeadlessTests/OpenShelf.HeadlessTests.csproj" />
+    <Project Path="tests/OpenShelf.Tests/OpenShelf.Tests.csproj" />
+  </Folder>
+</Solution>

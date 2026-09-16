@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>OpenShelfReader</AssemblyName>
+    <RootNamespace>OpenShelf.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\OpenShelfReader.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <SpeechBrokerRoot Condition="'$(SpeechBrokerRoot)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\speech-brokers</SpeechBrokerRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenShelf.Core\OpenShelf.Core.csproj" />
+    <ProjectReference Include="..\OpenShelf.Formats\OpenShelf.Formats.csproj" />
+    <ProjectReference Include="..\OpenShelf.Infrastructure\OpenShelf.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Svg.Skia" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="tools\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="runtimes\**\*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content
+        Include="$(SpeechBrokerRoot)\win-x64\OpenShelf.SpeechBroker.exe"
+        Link="tools\windows-speech\win-x64\OpenShelf.SpeechBroker.exe"
+        CopyToOutputDirectory="PreserveNewest"
+        CopyToPublishDirectory="PreserveNewest"
+        Condition="Exists('$(SpeechBrokerRoot)\win-x64\OpenShelf.SpeechBroker.exe')" />
+    <Content
+        Include="$(SpeechBrokerRoot)\win-x86\OpenShelf.SpeechBroker.exe"
+        Link="tools\windows-speech\win-x86\OpenShelf.SpeechBroker.exe"
+        CopyToOutputDirectory="PreserveNewest"
+        CopyToPublishDirectory="PreserveNewest"
+        Condition="Exists('$(SpeechBrokerRoot)\win-x86\OpenShelf.SpeechBroker.exe')" />
+  </ItemGroup>
+</Project>

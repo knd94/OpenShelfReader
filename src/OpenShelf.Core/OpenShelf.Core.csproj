@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Domain model and public contracts for OpenShelf Reader.</Description>
+  </PropertyGroup>
+</Project>

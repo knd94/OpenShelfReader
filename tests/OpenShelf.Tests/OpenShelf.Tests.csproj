@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference
+      Include="..\..\src\OpenShelf.App\OpenShelf.App.csproj"
+      Condition="'$(SkipAppProjectReference)' != 'true'" />
+    <ProjectReference Include="..\..\src\OpenShelf.Core\OpenShelf.Core.csproj" />
+    <ProjectReference Include="..\..\src\OpenShelf.Formats\OpenShelf.Formats.csproj" />
+    <ProjectReference Include="..\..\src\OpenShelf.Infrastructure\OpenShelf.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(SkipAppProjectReference)' == 'true'">
+    <Compile Remove="UI\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Formats\bin\**\*.cs" />
+    <Compile Remove="Formats\obj\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Formats\Fixtures\sample-unicode-huffdic.mobi"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\OpenShelf.App\runtimes\win-x64\native\**"
+          Link="runtimes\win-x64\native\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

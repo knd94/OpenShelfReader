@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\OpenShelf.Core\OpenShelf.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="PDFtoImage" />
+    <PackageReference Include="PdfPig" />
+    <PackageReference Include="RtfPipe" />
+    <PackageReference Include="VersOne.Epub" />
+  </ItemGroup>
+</Project>

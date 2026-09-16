@@ -1,0 +1,73 @@
+<Window
+    x:Class="OpenShelf.App.Views.CloseConfirmationDialog"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Close OpenShelf Reader?"
+    Icon="/Assets/OpenShelfReader.ico"
+    Width="470"
+    Height="250"
+    MinWidth="420"
+    MinHeight="230"
+    CanResize="False"
+    ShowInTaskbar="False"
+    WindowStartupLocation="CenterOwner"
+    KeyDown="Dialog_KeyDown">
+
+  <Border
+      Margin="20"
+      Padding="24"
+      Classes="panel">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+      <TextBlock
+          Grid.Row="0"
+          FontSize="22"
+          FontWeight="Bold"
+          Text="Close OpenShelf Reader?" />
+
+      <TextBlock
+          Grid.Row="1"
+          Margin="0,14,0,0"
+          AutomationProperties.Name="Do you want to close? All progress will be saved."
+          FontSize="15"
+          LineHeight="24"
+          Text="Do you want to close? All progress will be saved."
+          TextWrapping="Wrap" />
+
+      <TextBlock
+          Grid.Row="2"
+          Margin="0,8,0,0"
+          Classes="muted"
+          Text="OpenShelf will finish saving before it exits."
+          TextWrapping="Wrap" />
+
+      <StackPanel
+          Grid.Row="3"
+          Margin="0,24,0,0"
+          HorizontalAlignment="Right"
+          Orientation="Horizontal"
+          Spacing="10">
+        <Button
+            x:Name="YesButton"
+            MinWidth="92"
+            AutomationProperties.Name="Yes, save progress and close"
+            Classes="primary"
+            Click="Yes_Click"
+            Content="Yes" />
+        <Button
+            x:Name="NoButton"
+            MinWidth="92"
+            AutomationProperties.Name="No, keep OpenShelf open"
+            Classes="secondary"
+            Click="No_Click"
+            Content="No" />
+        <Button
+            x:Name="CancelButton"
+            MinWidth="92"
+            AutomationProperties.Name="Cancel closing"
+            Classes="ghost"
+            Click="Cancel_Click"
+            Content="Cancel" />
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

@@ -1,0 +1,2176 @@
+﻿<Window
+    x:Class="OpenShelf.App.Views.ShellWindow"
+    x:Name="RootWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:OpenShelf.App.ViewModels"
+    xmlns:views="using:OpenShelf.App.Views"
+    x:DataType="vm:ShellViewModel"
+    Icon="/Assets/OpenShelfReader.ico"
+    Title="{Binding WindowTitle}"
+    Width="1440"
+    Height="900"
+    MinWidth="980"
+    MinHeight="680"
+    WindowStartupLocation="CenterScreen"
+    Closing="Window_Closing"
+    KeyDown="Window_KeyDown">
+
+  <Window.DataTemplates>
+    <DataTemplate
+        x:DataType="vm:ReaderHeadingBlockViewModel"
+        DataType="vm:ReaderHeadingBlockViewModel">
+      <views:HighlightedSelectableTextBlock
+          Margin="0,18,0,18"
+          AutomationProperties.Name="Book heading"
+          FontFamily="Georgia"
+          FontSize="{Binding FontSize}"
+          FontWeight="Bold"
+          HighlightRanges="{Binding HighlightRanges}"
+          SpokenRange="{Binding SpokenRange}"
+          DoubleTapped="ReaderText_DoubleTapped"
+          PointerReleased="ReaderText_PointerReleased"
+          Tag="{Binding}"
+          SourceText="{Binding Text}"
+          TextWrapping="Wrap">
+        <views:HighlightedSelectableTextBlock.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy" Click="CopySelection_Click" InputGesture="Ctrl+C" />
+            <MenuItem Header="Highlight" Click="HighlightSelection_Click" />
+            <MenuItem Header="Add note" Click="AddNote_Click" />
+          </ContextMenu>
+        </views:HighlightedSelectableTextBlock.ContextMenu>
+      </views:HighlightedSelectableTextBlock>
+    </DataTemplate>
+
+    <DataTemplate
+        x:DataType="vm:ReaderParagraphBlockViewModel"
+        DataType="vm:ReaderParagraphBlockViewModel">
+      <views:HighlightedSelectableTextBlock
+          Margin="{Binding ParagraphMargin}"
+          AutomationProperties.Name="Book paragraph"
+          FontSize="{Binding FontSize}"
+          HighlightRanges="{Binding HighlightRanges}"
+          SpokenRange="{Binding SpokenRange}"
+          LineHeight="{Binding LineHeight}"
+          DoubleTapped="ReaderText_DoubleTapped"
+          PointerReleased="ReaderText_PointerReleased"
+          Tag="{Binding}"
+          SourceText="{Binding Text}"
+          TextAlignment="{Binding TextAlignment}"
+          TextWrapping="Wrap">
+        <views:HighlightedSelectableTextBlock.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="Copy" Click="CopySelection_Click" InputGesture="Ctrl+C" />
+            <MenuItem Header="Highlight" Click="HighlightSelection_Click" />
+            <MenuItem Header="Add note" Click="AddNote_Click" />
+          </ContextMenu>
+        </views:HighlightedSelectableTextBlock.ContextMenu>
+      </views:HighlightedSelectableTextBlock>
+    </DataTemplate>
+
+    <DataTemplate
+        x:DataType="vm:ReaderImageBlockViewModel"
+        DataType="vm:ReaderImageBlockViewModel">
+      <Border
+          Margin="0,10,0,24"
+          AutomationProperties.Name="{Binding AltText}"
+          Background="#12000000"
+          BorderBrush="#28FFFFFF"
+          BorderThickness="1"
+          CornerRadius="10"
+          ClipToBounds="True"
+          AttachedToVisualTree="ReaderImage_AttachedToVisualTree"
+          PointerPressed="ReaderImage_PointerPressed"
+          Tag="{Binding}">
+        <StackPanel>
+          <Grid MinHeight="210">
+            <Image
+                MaxHeight="560"
+                IsVisible="{Binding HasImage}"
+                Source="{Binding Image}"
+                Stretch="Uniform" />
+            <StackPanel
+                Margin="36"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsVisible="{Binding IsLoading}"
+                Spacing="10">
+              <ProgressBar Width="150" IsIndeterminate="True" />
+              <TextBlock Classes="muted" FontSize="12" Text="Loading image…" />
+            </StackPanel>
+            <StackPanel
+                Margin="36"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsVisible="{Binding IsImageMissing}"
+                Spacing="8">
+              <TextBlock
+                  HorizontalAlignment="Center"
+                  FontSize="28"
+                  Foreground="{DynamicResource OpenShelfMuted}"
+                  Text="▧" />
+              <TextBlock
+                  MaxWidth="360"
+                  HorizontalAlignment="Center"
+                  Foreground="{DynamicResource OpenShelfMuted}"
+                  Text="{Binding AltText}"
+                  TextAlignment="Center"
+                  TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+          <TextBlock
+              Margin="16,10,16,14"
+              HorizontalAlignment="Center"
+              Classes="muted"
+              FontSize="12"
+              IsVisible="{Binding HasCaption}"
+              Text="{Binding Caption}"
+              TextAlignment="Center"
+              TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate
+        x:DataType="vm:ReaderNoticeBlockViewModel"
+        DataType="vm:ReaderNoticeBlockViewModel">
+      <Border
+          Margin="0,8,0,22"
+          Padding="14"
+          AutomationProperties.Name="{Binding Text}"
+          Background="#269C7BFF"
+          BorderBrush="{DynamicResource OpenShelfAccent}"
+          BorderThickness="1"
+          CornerRadius="9"
+          Tag="{Binding}">
+        <TextBlock
+            FontSize="13"
+            Foreground="{Binding $parent[ItemsControl].Foreground}"
+            Text="{Binding Text}"
+            TextWrapping="Wrap" />
+      </Border>
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Grid>
+    <!-- LIBRARY -->
+    <Grid
+        ColumnDefinitions="260,*"
+        IsVisible="{Binding IsLibraryVisible}">
+      <Border
+          Grid.Column="0"
+          Padding="18,22,18,18"
+          Background="{DynamicResource OpenShelfSurface}"
+          BorderBrush="{DynamicResource OpenShelfBorder}"
+          BorderThickness="0,0,1,0">
+        <Grid RowDefinitions="Auto,Auto,*,Auto">
+          <Grid ColumnDefinitions="Auto,*" Margin="4,0,4,24">
+            <Border
+                Width="38"
+                Height="38"
+                CornerRadius="11"
+                Background="{DynamicResource OpenShelfAccent}">
+              <TextBlock
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  FontSize="20"
+                  FontWeight="Bold"
+                  Foreground="#130B25"
+                  Text="O" />
+            </Border>
+            <StackPanel Grid.Column="1" Margin="11,0,0,0" VerticalAlignment="Center">
+              <TextBlock FontSize="16" FontWeight="Bold" Text="OpenShelf" />
+              <TextBlock Classes="muted" FontSize="11" Text="YOUR READING SPACE" />
+            </StackPanel>
+          </Grid>
+
+          <Grid Grid.Row="1" Margin="0,0,0,18">
+            <TextBox
+                x:Name="LibrarySearchBox"
+                AutomationProperties.Name="Search your library"
+                Text="{Binding SearchText, Mode=TwoWay}"
+                PlaceholderText="Search title, author, format"
+                KeyDown="SearchBox_KeyDown" />
+            <Button
+                Width="28"
+                Height="28"
+                Margin="0,0,6,0"
+                Padding="0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                AutomationProperties.Name="Clear library search"
+                Classes="ghost"
+                Command="{Binding ClearSearchCommand}"
+                Content="×"
+                IsVisible="{Binding HasSearchText}" />
+          </Grid>
+
+          <ScrollViewer
+              Grid.Row="2"
+              HorizontalScrollBarVisibility="Disabled"
+              VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="3">
+              <TextBlock Classes="eyebrow" Margin="10,4,0,8" Text="LIBRARY" />
+
+              <Button
+                  AutomationProperties.Name="Show all books"
+                  Classes="nav"
+                  Command="{Binding ShowAllCommand}">
+                <Grid ColumnDefinitions="28,*,Auto">
+                  <TextBlock FontSize="16" Text="▦" />
+                  <TextBlock Grid.Column="1" Text="All books" />
+                  <TextBlock Grid.Column="2" Classes="muted" Text="{Binding LibrarySummary}" />
+                </Grid>
+              </Button>
+
+              <Button
+                  AutomationProperties.Name="Show favourite books"
+                  Classes="nav"
+                  Command="{Binding ShowFavouritesCommand}">
+                <Grid ColumnDefinitions="28,*">
+                  <TextBlock Foreground="{DynamicResource OpenShelfWarning}" Text="★" />
+                  <TextBlock Grid.Column="1" Text="Favourites" />
+                </Grid>
+              </Button>
+
+              <Grid Margin="10,24,4,8" ColumnDefinitions="*,Auto">
+                <TextBlock Classes="eyebrow" VerticalAlignment="Center" Text="CATEGORIES" />
+                <Button
+                    Grid.Column="1"
+                    Width="28"
+                    Height="28"
+                    Padding="0"
+                    AutomationProperties.Name="Create category"
+                    Classes="ghost"
+                    Command="{Binding ShowAddCategoryCommand}"
+                    Content="＋"
+                    ToolTip.Tip="Create category" />
+              </Grid>
+
+              <Border
+                  Padding="9"
+                  Margin="0,0,0,8"
+                  Background="#25FFFFFF"
+                  CornerRadius="10"
+                  IsVisible="{Binding IsAddCategoryOpen}">
+                <StackPanel Spacing="8">
+                  <TextBox
+                      AutomationProperties.Name="New category name"
+                      Text="{Binding NewCategoryName, Mode=TwoWay}"
+                      PlaceholderText="Category name" />
+                  <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                    <Button
+                        Classes="secondary"
+                        Command="{Binding CancelAddCategoryCommand}"
+                        Content="Cancel" />
+                    <Button
+                        Grid.Column="1"
+                        Classes="primary"
+                        Command="{Binding SaveCategoryCommand}"
+                        Content="Create" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <ItemsControl ItemsSource="{Binding Categories}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:CategoryItemViewModel">
+                    <Button
+                        AutomationProperties.Name="{Binding Name}"
+                        Classes="nav"
+                        Command="{ReflectionBinding DataContext.SelectCategoryCommand, ElementName=RootWindow}"
+                        CommandParameter="{Binding}">
+                      <Grid ColumnDefinitions="28,*,Auto">
+                        <TextBlock Text="◇" />
+                        <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                        <Border
+                            Grid.Column="2"
+                            Padding="7,2"
+                            Background="#1FFFFFFF"
+                            CornerRadius="8">
+                          <TextBlock Classes="muted" FontSize="11" Text="{Binding CountLabel}" />
+                        </Border>
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+
+          <StackPanel Grid.Row="3" Spacing="3">
+            <Border Height="1" Margin="4,8" Background="{DynamicResource OpenShelfBorder}" />
+            <TextBlock Classes="eyebrow" Margin="10,0,0,3" Text="APP THEME" />
+            <ComboBox
+                Margin="4,0,4,6"
+                AutomationProperties.Name="Library colour theme"
+                ItemsSource="{Binding LibraryThemes}"
+                SelectedItem="{Binding SelectedLibraryTheme, Mode=TwoWay}" />
+            <Button
+                AutomationProperties.Name="Help and diagnostics"
+                Classes="nav"
+                Command="{Binding ToggleHelpCommand}">
+              <Grid ColumnDefinitions="28,*">
+                <TextBlock Text="?" />
+                <TextBlock Grid.Column="1" Text="Help &amp; diagnostics" />
+              </Grid>
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Column="1" RowDefinitions="Auto,*">
+        <Border
+            Padding="30,22"
+            BorderBrush="{DynamicResource OpenShelfBorder}"
+            BorderThickness="0,0,0,1">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock
+                  FontSize="30"
+                  FontWeight="Bold"
+                  Text="{Binding LibraryHeading}" />
+              <TextBlock
+                  Classes="muted"
+                  Margin="0,5,0,0"
+                  Text="{Binding LibrarySummary}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+              <ComboBox
+                  Width="145"
+                  AutomationProperties.Name="Sort library"
+                  ItemsSource="{Binding LibrarySortOptions}"
+                  SelectedItem="{Binding SelectedLibrarySort, Mode=TwoWay}" />
+              <Button
+                  AutomationProperties.Name="Import ebook files"
+                  Classes="secondary"
+                  Click="ImportFiles_Click"
+                  Content="＋  Add books"
+                  HotKey="Ctrl+O" />
+              <Button
+                  AutomationProperties.Name="Import ebook folder"
+                  Classes="primary"
+                  Click="ImportFolder_Click"
+                  Content="▤  Add folder"
+                  HotKey="Ctrl+Shift+O" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+          <ScrollViewer
+              Padding="30,28,18,36"
+              HorizontalScrollBarVisibility="Disabled"
+              VerticalScrollBarVisibility="Auto"
+              IsVisible="{Binding HasVisibleBooks}">
+            <ItemsControl ItemsSource="{Binding VisibleBooks}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel
+                      ItemWidth="242"
+                      ItemHeight="406"
+                      Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:BookItemViewModel">
+                  <Grid Width="226" Height="386" Margin="0,0,16,20">
+                    <Button
+                        AutomationProperties.Name="{Binding Title}"
+                        Classes="card"
+                        Command="{ReflectionBinding DataContext.OpenBookCommand, ElementName=RootWindow}"
+                        CommandParameter="{Binding}"
+                        ToolTip.Tip="Open book">
+                      <StackPanel Spacing="12">
+                        <Border
+                            Height="302"
+                            Background="{DynamicResource OpenShelfSurfaceRaised}"
+                            BorderBrush="{DynamicResource OpenShelfBorder}"
+                            BorderThickness="1"
+                            CornerRadius="14"
+                            ClipToBounds="True">
+                          <Grid>
+                            <Border
+                                Background="{Binding FallbackCover}"
+                                IsVisible="{Binding UsesFallbackCover}">
+                              <StackPanel
+                                  Margin="24,52,24,58"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  Spacing="10">
+                                <Border
+                                    Width="46"
+                                    Height="2"
+                                    HorizontalAlignment="Center"
+                                    Background="#C8E8B76A"
+                                    CornerRadius="1" />
+                                <TextBlock
+                                    MaxLines="3"
+                                    HorizontalAlignment="Center"
+                                    FontFamily="Georgia"
+                                    FontSize="24"
+                                    FontWeight="Bold"
+                                    Foreground="#FFF9F0"
+                                    LineHeight="29"
+                                    Text="{Binding Title}"
+                                    TextAlignment="Center"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    MaxLines="2"
+                                    HorizontalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="#E8FFF7F1"
+                                    Text="{Binding Author}"
+                                    TextAlignment="Center"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="Wrap" />
+                              </StackPanel>
+                            </Border>
+
+                            <Image
+                                AutomationProperties.Name="{Binding Title}"
+                                IsVisible="{Binding HasCover}"
+                                Source="{Binding Cover}"
+                                Stretch="UniformToFill" />
+
+                            <Border
+                                Margin="10"
+                                Padding="8,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="#C90B0D12"
+                                CornerRadius="7">
+                              <TextBlock
+                                  Classes="eyebrow"
+                                  FontSize="9"
+                                  LetterSpacing="0.8"
+                                  Text="{Binding Format}" />
+                            </Border>
+
+                            <Grid
+                                Height="46"
+                                Margin="10"
+                                RowDefinitions="23,23"
+                                VerticalAlignment="Bottom">
+                              <ProgressBar
+                                  Grid.Row="0"
+                                  Height="23"
+                                  Background="#B51B1F29"
+                                  CornerRadius="10,10,4,4"
+                                  Foreground="#4387FF"
+                                  Maximum="100"
+                                  Value="{Binding ProgressPercent}" />
+                              <TextBlock
+                                  Grid.Row="0"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  FontSize="11"
+                                  FontWeight="Bold"
+                                  Foreground="White"
+                                  Text="{Binding ProgressLabel}" />
+                              <Border
+                                  Grid.Row="1"
+                                  Background="#E51B1F29"
+                                  CornerRadius="4,4,10,10">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="9"
+                                    FontWeight="SemiBold"
+                                    Foreground="White"
+                                    Text="{Binding TimeRemainingLabel}"
+                                    TextAlignment="Center"
+                                    TextTrimming="CharacterEllipsis" />
+                              </Border>
+                            </Grid>
+                          </Grid>
+                        </Border>
+
+                        <StackPanel Margin="3,0">
+                          <TextBlock
+                              MaxLines="2"
+                              FontSize="16"
+                              FontWeight="SemiBold"
+                              LineHeight="21"
+                              Text="{Binding Title}"
+                              TextTrimming="CharacterEllipsis"
+                              TextWrapping="Wrap" />
+                          <TextBlock
+                              Classes="muted"
+                              Margin="0,4,0,0"
+                              FontSize="13"
+                              Text="{Binding Author}"
+                              TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Button>
+
+                    <StackPanel
+                        Margin="0,9,9,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Orientation="Horizontal"
+                        Spacing="5">
+                      <Button
+                          Width="34"
+                          Height="34"
+                          Padding="0"
+                          AutomationProperties.Name="Edit book details"
+                          Classes="icon"
+                          Command="{ReflectionBinding DataContext.OpenBookEditorCommand, ElementName=RootWindow}"
+                          CommandParameter="{Binding}"
+                          Content="⋯"
+                          FontSize="17"
+                          ToolTip.Tip="Edit title, author, and category" />
+                      <Button
+                          Width="34"
+                          Height="34"
+                          Padding="0"
+                          AutomationProperties.Name="{Binding FavoriteLabel}"
+                          Classes="icon"
+                          Command="{ReflectionBinding DataContext.ToggleFavouriteCommand, ElementName=RootWindow}"
+                          CommandParameter="{Binding}"
+                          Content="{Binding FavoriteGlyph}"
+                          Foreground="{DynamicResource OpenShelfWarning}"
+                          ToolTip.Tip="{Binding FavoriteLabel}" />
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <Grid
+              Margin="28"
+              IsVisible="{Binding ShowEmptyLibrary}">
+            <Border
+                MaxWidth="660"
+                Padding="58,54"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="#9312151D"
+                BorderBrush="{DynamicResource OpenShelfBorder}"
+                BorderThickness="1"
+                CornerRadius="24">
+              <StackPanel HorizontalAlignment="Center" Spacing="14">
+                <Border
+                    Width="76"
+                    Height="76"
+                    HorizontalAlignment="Center"
+                    Background="#269C7BFF"
+                    CornerRadius="23">
+                  <TextBlock
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      FontSize="36"
+                      Foreground="{DynamicResource OpenShelfAccentStrong}"
+                      Text="▦" />
+                </Border>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    HorizontalAlignment="Center"
+                    FontSize="27"
+                    FontWeight="Bold"
+                    Text="Build a library that feels like yours" />
+                <TextBlock
+                    MaxWidth="510"
+                    HorizontalAlignment="Center"
+                    Foreground="{DynamicResource OpenShelfMuted}"
+                    LineHeight="23"
+                    Text="Add individual books or choose a folder. OpenShelf only reads the items you select and keeps notes, bookmarks, and progress local."
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+                <StackPanel
+                    Margin="0,12,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="10">
+                  <Button Classes="primary" Click="ImportFiles_Click" Content="Add books" />
+                  <Button Classes="secondary" Click="ImportFolder_Click" Content="Choose folder" />
+                  <Button
+                      Classes="ghost"
+                      Command="{Binding LoadSampleLibraryCommand}"
+                      Content="View sample library"
+                      IsVisible="{Binding IsPreviewMode}" />
+                </StackPanel>
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    Classes="muted"
+                    FontSize="12"
+                    Text="EPUB · PDF · MOBI · AZW3 · FB2 · TXT · RTF · DOCX" />
+              </StackPanel>
+            </Border>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+
+    <!-- READER -->
+    <Grid
+        RowDefinitions="Auto,*,Auto"
+        Background="{Binding ReaderCanvasBrush}"
+        IsVisible="{Binding IsReaderOpen}">
+      <Border
+          Grid.Row="0"
+          Padding="14,10"
+          Background="#F412151D"
+          BorderBrush="{DynamicResource OpenShelfBorder}"
+          BorderThickness="0,0,0,1">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Button
+              Width="40"
+              Height="40"
+              Padding="0"
+              AutomationProperties.Name="Back to library"
+              Classes="icon"
+              Command="{Binding CloseReaderCommand}"
+              Content="←"
+              HotKey="Alt+Left"
+              ToolTip.Tip="Back to library (Alt+Left)" />
+
+          <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center">
+            <TextBlock
+                FontSize="14"
+                FontWeight="SemiBold"
+                Text="{Binding ReaderTitle}"
+                TextTrimming="CharacterEllipsis" />
+            <TextBlock
+                Classes="muted"
+                FontSize="11"
+                Text="{Binding ReaderAuthor}"
+                TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+
+          <ScrollViewer
+              Grid.Column="2"
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Disabled">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <Button
+                  AutomationProperties.Name="Table of contents"
+                  Classes="icon"
+                  Command="{Binding ToggleTocCommand}"
+                  Content="☰"
+                  ToolTip.Tip="Table of contents" />
+              <Button
+                  AutomationProperties.Name="Add bookmark"
+                  Classes="icon"
+                  Command="{Binding AddBookmarkCommand}"
+                  Content="◆"
+                  HotKey="Ctrl+B"
+                  ToolTip.Tip="Add bookmark (Ctrl+B)" />
+              <Button
+                  AutomationProperties.Name="Highlights, notes, and bookmarks"
+                  Classes="icon"
+                  Command="{Binding ToggleAnnotationsCommand}"
+                  Content="✎"
+                  ToolTip.Tip="Annotations" />
+              <Button
+                  AutomationProperties.Name="Open settings"
+                  Classes="icon"
+                  Command="{Binding ToggleAppearanceCommand}"
+                  Content="⚙"
+                  FontSize="16"
+                  ToolTip.Tip="Settings" />
+              <Button
+                  AutomationProperties.Name="Help and diagnostics"
+                  Classes="icon"
+                  Command="{Binding ToggleHelpCommand}"
+                  Content="?"
+                  ToolTip.Tip="Help and diagnostics" />
+              <Button
+                  x:Name="FullscreenButton"
+                  AutomationProperties.Name="Toggle fullscreen"
+                  Classes="icon"
+                  Click="Fullscreen_Click"
+                  Content="⛶"
+                  ToolTip.Tip="Fullscreen (F11)" />
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
+        <Border
+            Grid.Column="0"
+            Width="280"
+            Padding="18"
+            Background="#F412151D"
+            BorderBrush="{DynamicResource OpenShelfBorder}"
+            BorderThickness="0,0,1,0"
+            IsVisible="{Binding IsTocOpen}">
+          <Grid RowDefinitions="Auto,*">
+            <Grid ColumnDefinitions="*,Auto" Margin="4,0,0,16">
+              <StackPanel>
+                <TextBlock Classes="eyebrow" Text="CONTENTS" />
+                <TextBlock Margin="0,4,0,0" FontSize="18" FontWeight="Bold" Text="In this book" />
+              </StackPanel>
+              <Button
+                  Grid.Column="1"
+                  Width="32"
+                  Height="32"
+                  Padding="0"
+                  AutomationProperties.Name="Close table of contents"
+                  Classes="ghost"
+                  Command="{Binding ToggleTocCommand}"
+                  Content="×" />
+            </Grid>
+            <ListBox Grid.Row="1" ItemsSource="{Binding TableOfContents}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:TocItemViewModel">
+                  <Button
+                      Margin="{Binding IndentMargin}"
+                      AutomationProperties.Name="{Binding Title}"
+                      Classes="nav"
+                      Command="{ReflectionBinding DataContext.JumpToTocCommand, ElementName=RootWindow}"
+                      CommandParameter="{Binding}"
+                      Content="{Binding Title}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
+
+        <Grid
+            x:Name="ReaderSurface"
+            Grid.Column="1"
+            Background="{Binding ReaderCanvasBrush}"
+            SizeChanged="ReaderSurface_SizeChanged">
+          <ScrollViewer
+              x:Name="ReaderScroller"
+              Padding="28,24,28,64"
+              HorizontalScrollBarVisibility="Disabled"
+              VerticalScrollBarVisibility="Auto"
+              ScrollChanged="ReaderScroller_ScrollChanged">
+            <Grid>
+            <Border
+                MaxWidth="{Binding ReaderContentWidth}"
+                MinHeight="700"
+                Padding="{Binding ReaderPageThickness}"
+                HorizontalAlignment="Center"
+                Background="{Binding ReaderPageBrush}"
+                CornerRadius="10"
+                IsVisible="{Binding IsScrollMode}">
+              <ItemsControl
+                  FontFamily="{Binding SelectedFontFamily}"
+                  Foreground="{Binding ReaderTextBrush}"
+                  ItemsSource="{Binding DisplayedReaderBlocks}">
+                <ItemsControl.DataTemplates>
+                  <DataTemplate
+                      x:DataType="vm:ReaderHeadingBlockViewModel"
+                      DataType="vm:ReaderHeadingBlockViewModel">
+                    <views:HighlightedSelectableTextBlock
+                        Margin="0,18,0,18"
+                        AutomationProperties.Name="Book heading"
+                        FontFamily="Georgia"
+                        FontSize="{Binding FontSize}"
+                        FontWeight="Bold"
+                        HighlightRanges="{Binding HighlightRanges}"
+                        SpokenRange="{Binding SpokenRange}"
+                        DoubleTapped="ReaderText_DoubleTapped"
+                        PointerReleased="ReaderText_PointerReleased"
+                        Tag="{Binding}"
+                        SourceText="{Binding Text}"
+                        TextWrapping="Wrap">
+                      <views:HighlightedSelectableTextBlock.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="Copy" Click="CopySelection_Click" InputGesture="Ctrl+C" />
+                          <MenuItem Header="Highlight" Click="HighlightSelection_Click" />
+                          <MenuItem Header="Add note" Click="AddNote_Click" />
+                        </ContextMenu>
+                      </views:HighlightedSelectableTextBlock.ContextMenu>
+                    </views:HighlightedSelectableTextBlock>
+                  </DataTemplate>
+
+                  <DataTemplate
+                      x:DataType="vm:ReaderParagraphBlockViewModel"
+                      DataType="vm:ReaderParagraphBlockViewModel">
+                    <views:HighlightedSelectableTextBlock
+                        Margin="{Binding ParagraphMargin}"
+                        AutomationProperties.Name="Book paragraph"
+                        FontSize="{Binding FontSize}"
+                        HighlightRanges="{Binding HighlightRanges}"
+                        SpokenRange="{Binding SpokenRange}"
+                        LineHeight="{Binding LineHeight}"
+                        DoubleTapped="ReaderText_DoubleTapped"
+                        PointerReleased="ReaderText_PointerReleased"
+                        Tag="{Binding}"
+                        SourceText="{Binding Text}"
+                        TextAlignment="{Binding TextAlignment}"
+                        TextWrapping="Wrap">
+                      <views:HighlightedSelectableTextBlock.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="Copy" Click="CopySelection_Click" InputGesture="Ctrl+C" />
+                          <MenuItem Header="Highlight" Click="HighlightSelection_Click" />
+                          <MenuItem Header="Add note" Click="AddNote_Click" />
+                        </ContextMenu>
+                      </views:HighlightedSelectableTextBlock.ContextMenu>
+                    </views:HighlightedSelectableTextBlock>
+                  </DataTemplate>
+
+                  <DataTemplate
+                      x:DataType="vm:ReaderImageBlockViewModel"
+                      DataType="vm:ReaderImageBlockViewModel">
+                    <Border
+                        Margin="0,10,0,24"
+                        AutomationProperties.Name="{Binding AltText}"
+                        Background="#12000000"
+                        BorderBrush="#28FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        ClipToBounds="True"
+                        AttachedToVisualTree="ReaderImage_AttachedToVisualTree"
+                        PointerPressed="ReaderImage_PointerPressed"
+                        Tag="{Binding}">
+                      <StackPanel>
+                        <Grid MinHeight="210">
+                          <Image
+                              MaxHeight="560"
+                              IsVisible="{Binding HasImage}"
+                              Source="{Binding Image}"
+                              Stretch="Uniform" />
+                          <StackPanel
+                              Margin="36"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              IsVisible="{Binding IsLoading}"
+                              Spacing="10">
+                            <ProgressBar Width="150" IsIndeterminate="True" />
+                            <TextBlock
+                                Classes="muted"
+                                FontSize="12"
+                                Text="Loading image…" />
+                          </StackPanel>
+                          <StackPanel
+                              Margin="36"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              IsVisible="{Binding IsImageMissing}"
+                              Spacing="8">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="28"
+                                Foreground="{DynamicResource OpenShelfMuted}"
+                                Text="▧" />
+                            <TextBlock
+                                MaxWidth="360"
+                                HorizontalAlignment="Center"
+                                Foreground="{DynamicResource OpenShelfMuted}"
+                                Text="{Binding AltText}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap" />
+                          </StackPanel>
+                        </Grid>
+                        <TextBlock
+                            Margin="16,10,16,14"
+                            HorizontalAlignment="Center"
+                            Classes="muted"
+                            FontSize="12"
+                            IsVisible="{Binding HasCaption}"
+                            Text="{Binding Caption}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+
+                  <DataTemplate
+                      x:DataType="vm:ReaderNoticeBlockViewModel"
+                      DataType="vm:ReaderNoticeBlockViewModel">
+                    <Border
+                        Margin="0,8,0,22"
+                        Padding="14"
+                        AutomationProperties.Name="{Binding Text}"
+                        Background="#269C7BFF"
+                        BorderBrush="{DynamicResource OpenShelfAccent}"
+                        BorderThickness="1"
+                        CornerRadius="9"
+                        Tag="{Binding}">
+                      <TextBlock
+                          FontSize="13"
+                          Foreground="{Binding $parent[ItemsControl].Foreground}"
+                          Text="{Binding Text}"
+                          TextWrapping="Wrap" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.DataTemplates>
+              </ItemsControl>
+            </Border>
+
+              <ItemsControl
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Top"
+                  IsVisible="{Binding IsPagedMode}"
+                  ItemsSource="{Binding DisplayedReaderPages}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="24" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ReaderPageViewModel">
+                    <Border
+                        Width="{ReflectionBinding DataContext.ReaderPagedPageWidth, ElementName=RootWindow}"
+                        Height="{ReflectionBinding DataContext.ReaderPagedPageHeight, ElementName=RootWindow}"
+                        Padding="{ReflectionBinding DataContext.ReaderPageThickness, ElementName=RootWindow}"
+                        AutomationProperties.Name="{Binding AccessibleName}"
+                        Background="{ReflectionBinding DataContext.ReaderPageBrush, ElementName=RootWindow}"
+                        BorderBrush="{DynamicResource OpenShelfBorder}"
+                        BorderThickness="1"
+                        ClipToBounds="True"
+                        CornerRadius="8">
+                      <ItemsControl
+                          FontFamily="{ReflectionBinding DataContext.SelectedFontFamily, ElementName=RootWindow}"
+                          Foreground="{ReflectionBinding DataContext.ReaderTextBrush, ElementName=RootWindow}"
+                          ItemsSource="{Binding Blocks}" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Grid>
+          </ScrollViewer>
+
+          <Border
+              Margin="24,24,24,72"
+              Padding="7"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Bottom"
+              Background="#F01B1F29"
+              BorderBrush="{DynamicResource OpenShelfBorder}"
+              BorderThickness="1"
+              CornerRadius="12"
+              IsVisible="{Binding IsPagedMode}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button
+                  Width="36"
+                  Height="34"
+                  Padding="0"
+                  AutomationProperties.Name="Previous reading page"
+                  Classes="secondary pageIcon"
+                  Command="{Binding PreviousPageCommand}"
+                  Content="‹"
+                  ToolTip.Tip="Previous page (Left or Page Up)" />
+              <TextBlock
+                  MinWidth="92"
+                  VerticalAlignment="Center"
+                  Classes="muted"
+                  Text="{Binding ReaderPageLabel}"
+                  TextAlignment="Center" />
+              <Button
+                  Width="36"
+                  Height="34"
+                  Padding="0"
+                  AutomationProperties.Name="Next reading page"
+                  Classes="secondary pageIcon"
+                  Command="{Binding NextPageCommand}"
+                  Content="›"
+                  ToolTip.Tip="Next page (Right or Page Down)" />
+            </StackPanel>
+          </Border>
+
+          <Border
+              Margin="24"
+              Padding="8"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Background="#F01B1F29"
+              BorderBrush="{DynamicResource OpenShelfBorder}"
+              BorderThickness="1"
+              CornerRadius="13"
+              IsVisible="{Binding HasSelection}">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="6">
+              <TextBlock
+                  MaxWidth="280"
+                  Margin="7,0,10,0"
+                  VerticalAlignment="Center"
+                  Classes="muted"
+                  Text="{Binding SelectionPreview}"
+                  TextTrimming="CharacterEllipsis" />
+              <Button
+                  Grid.Column="1"
+                  Classes="secondary"
+                  Click="CopySelection_Click"
+                  Content="Copy" />
+              <Button
+                  Grid.Column="2"
+                  Classes="secondary"
+                  Command="{Binding HighlightSelectionCommand}"
+                  Content="Highlight" />
+              <Button
+                  Grid.Column="3"
+                  Classes="primary"
+                  Command="{Binding OpenNoteComposerCommand}"
+                  Content="Add note" />
+            </Grid>
+          </Border>
+        </Grid>
+
+        <Border
+            Grid.Column="2"
+            Width="330"
+            Padding="18"
+            Background="#F412151D"
+            BorderBrush="{DynamicResource OpenShelfBorder}"
+            BorderThickness="1,0,0,0"
+            IsVisible="{Binding IsAnnotationsOpen}">
+          <Grid RowDefinitions="Auto,Auto,*">
+            <Grid ColumnDefinitions="*,Auto" Margin="4,0,0,14">
+              <StackPanel>
+                <TextBlock Classes="eyebrow" Text="ANNOTATIONS" />
+                <TextBlock Margin="0,4,0,0" FontSize="18" FontWeight="Bold" Text="Your marks" />
+              </StackPanel>
+              <Button
+                  Grid.Column="1"
+                  Width="32"
+                  Height="32"
+                  Padding="0"
+                  AutomationProperties.Name="Close annotations"
+                  Classes="ghost"
+                  Command="{Binding ToggleAnnotationsCommand}"
+                  Content="×" />
+            </Grid>
+
+            <Border
+                Grid.Row="1"
+                Margin="0,0,0,14"
+                Padding="12"
+                Background="#20FFFFFF"
+                CornerRadius="10"
+                IsVisible="{Binding HasSelection}">
+              <StackPanel Spacing="9">
+                <TextBlock
+                    MaxLines="3"
+                    Classes="muted"
+                    FontSize="12"
+                    Text="{Binding SelectionPreview}"
+                    TextWrapping="Wrap" />
+                <ComboBox
+                    AutomationProperties.Name="Highlight colour"
+                    ItemsSource="{Binding HighlightColors}"
+                    SelectedItem="{Binding SelectedHighlightColor, Mode=TwoWay}" />
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                  <Button Classes="secondary" Click="CopySelection_Click" Content="Copy" />
+                  <Button
+                      Grid.Column="1"
+                      Classes="secondary"
+                      Command="{Binding HighlightSelectionCommand}"
+                      Content="Highlight" />
+                  <Button
+                      Grid.Column="2"
+                      Classes="primary"
+                      Command="{Binding OpenNoteComposerCommand}"
+                      Content="Note" />
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <Grid Grid.Row="2">
+              <StackPanel
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  IsVisible="{Binding !HasAnnotations}"
+                  Spacing="8">
+                <TextBlock HorizontalAlignment="Center" FontSize="28" Text="✎" />
+                <TextBlock FontWeight="SemiBold" Text="No annotations yet" />
+                <TextBlock
+                    MaxWidth="230"
+                    HorizontalAlignment="Center"
+                    Classes="muted"
+                    FontSize="12"
+                    Text="Select a passage, or bookmark your current place."
+                    TextAlignment="Center"
+                    TextWrapping="Wrap" />
+              </StackPanel>
+
+              <ListBox ItemsSource="{Binding Annotations}" IsVisible="{Binding HasAnnotations}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AnnotationItemViewModel">
+                    <Border
+                        Margin="0,0,0,9"
+                        Padding="11"
+                        Background="#25FFFFFF"
+                        CornerRadius="10">
+                      <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*,Auto">
+                        <TextBlock
+                            Margin="0,2,9,0"
+                            Foreground="{DynamicResource OpenShelfAccentStrong}"
+                            Text="{Binding Glyph}" />
+                        <TextBlock
+                            Grid.Column="1"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Text="{Binding Title}" />
+                        <StackPanel
+                            Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="2">
+                          <Button
+                              Width="25"
+                              Height="25"
+                              Padding="0"
+                              AutomationProperties.Name="Edit note"
+                              Classes="ghost"
+                              Command="{ReflectionBinding DataContext.OpenEditNoteCommand, ElementName=RootWindow}"
+                              CommandParameter="{Binding}"
+                              Content="✎"
+                              IsVisible="{Binding IsNote}" />
+                          <Button
+                              Width="25"
+                              Height="25"
+                              Padding="0"
+                              AutomationProperties.Name="Remove annotation"
+                              Classes="ghost"
+                              Command="{ReflectionBinding DataContext.RemoveAnnotationCommand, ElementName=RootWindow}"
+                              CommandParameter="{Binding}"
+                              Content="×" />
+                        </StackPanel>
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="0,5,0,0"
+                            MaxLines="3"
+                            Classes="muted"
+                            FontSize="12"
+                            Text="{Binding Excerpt}"
+                            TextWrapping="Wrap" />
+                        <Button
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Grid.ColumnSpan="2"
+                            Margin="0,7,0,0"
+                            Padding="0"
+                            HorizontalAlignment="Left"
+                            Classes="ghost"
+                            Command="{ReflectionBinding DataContext.JumpToAnnotationCommand, ElementName=RootWindow}"
+                            CommandParameter="{Binding}"
+                            Content="{Binding Timestamp}"
+                            FontSize="10" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+            </Grid>
+          </Grid>
+        </Border>
+
+        <Border
+            Grid.Column="2"
+            Width="660"
+            Background="#FF191C24"
+            BorderBrush="#FF303644"
+            BorderThickness="1,0,0,0"
+            IsVisible="{Binding IsAppearanceOpen}">
+          <Grid RowDefinitions="Auto,*">
+            <Border
+                Padding="24,20,20,16"
+                BorderBrush="#FF303644"
+                BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="3">
+                  <TextBlock
+                      Foreground="#FFF5F7FB"
+                      FontSize="22"
+                      FontWeight="Bold"
+                      Text="Settings" />
+                  <TextBlock
+                      Classes="settingsMuted"
+                      Text="Reader preferences are stored locally and applied to every book." />
+                </StackPanel>
+                <Button
+                    Grid.Column="1"
+                    Width="36"
+                    Height="36"
+                    Padding="0"
+                    AutomationProperties.Name="Close settings"
+                    Classes="ghost"
+                    Command="{Binding ToggleAppearanceCommand}"
+                    Content="×"
+                    ToolTip.Tip="Close settings" />
+              </Grid>
+            </Border>
+
+            <TabControl
+                Grid.Row="1"
+                Margin="18,10,18,0"
+                AutomationProperties.Name="Settings sections"
+                Background="Transparent"
+                Foreground="#FFF5F7FB">
+              <TabItem
+                  AutomationProperties.Name="System settings tab"
+                  Header="System">
+                <ScrollViewer
+                    Padding="4,18,8,24"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                  <StackPanel Spacing="14">
+                    <StackPanel Spacing="4">
+                      <TextBlock Classes="settingsLabel" FontSize="18" Text="System" />
+                      <TextBlock
+                          Classes="settingsMuted"
+                          Text="Choose how OpenShelf looks and open local support tools."
+                          TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="10">
+                        <TextBlock Classes="settingsLabel" Text="Application theme" />
+                        <TextBlock
+                            Classes="settingsMuted"
+                            Text="Dark is the default. Light and your operating-system theme are also available."
+                            TextWrapping="Wrap" />
+                        <ComboBox
+                            AutomationProperties.Name="Application theme"
+                            ItemsSource="{Binding LibraryThemes}"
+                            SelectedItem="{Binding SelectedLibraryTheme, Mode=TwoWay}" />
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+                        <StackPanel Spacing="6">
+                          <TextBlock Classes="settingsLabel" Text="Help &amp; diagnostics" />
+                          <TextBlock
+                              Classes="settingsMuted"
+                              LineHeight="18"
+                              Text="View keyboard help, format support, and diagnostic details generated on this device."
+                              TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="1"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Open local help and diagnostics"
+                            Classes="secondary"
+                            Command="{Binding ToggleHelpCommand}"
+                            Content="Open" />
+                      </Grid>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="6">
+                        <TextBlock Classes="settingsLabel" Text="Local-first library" />
+                        <TextBlock
+                            Classes="settingsMuted"
+                            LineHeight="18"
+                            Text="Your managed book copies, reading positions, annotations, and preferences remain on this device. OpenShelf never changes the original files you selected."
+                            TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                </ScrollViewer>
+              </TabItem>
+
+              <TabItem
+                  AutomationProperties.Name="Reading settings tab"
+                  Header="Reading">
+                <ScrollViewer
+                    Padding="4,18,8,24"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                  <StackPanel Spacing="14">
+                    <StackPanel Spacing="4">
+                      <TextBlock Classes="settingsLabel" FontSize="18" Text="Reading settings" />
+                      <TextBlock
+                          Classes="settingsMuted"
+                          Text="Tune the native reading surface without modifying the ebook."
+                          TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBlock Classes="settingsLabel" Text="Your reading speed" />
+                          <TextBlock
+                              Grid.Column="1"
+                              Classes="settingsMuted"
+                              Text="{Binding PersonalReadingWordsPerMinute, StringFormat={}{0} words/min}" />
+                        </Grid>
+                        <TextBlock
+                            Classes="settingsMuted"
+                            Text="Adjust this for your own pace. Faster readers can raise it up to 1,000 words per minute."
+                            TextWrapping="Wrap" />
+                        <Slider
+                            AutomationProperties.Name="Personal reading speed for time remaining estimates"
+                            IsSnapToTickEnabled="True"
+                            Minimum="100"
+                            Maximum="1000"
+                            TickFrequency="25"
+                            Value="{Binding PersonalReadingWordsPerMinute, Mode=TwoWay}" />
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                        <StackPanel Spacing="7">
+                          <TextBlock Classes="settingsMuted" Text="Reading theme" />
+                          <ComboBox
+                              AutomationProperties.Name="Reading theme"
+                              ItemsSource="{Binding ReaderThemes}"
+                              SelectedItem="{Binding SelectedReaderTheme, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="7">
+                          <TextBlock Classes="settingsMuted" Text="Layout" />
+                          <ComboBox
+                              AutomationProperties.Name="Reading layout"
+                              ItemsSource="{Binding ReaderLayoutModes}"
+                              SelectedItem="{Binding SelectedReaderLayoutMode, Mode=TwoWay}" />
+                        </StackPanel>
+                      </Grid>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="14">
+                        <StackPanel Spacing="7">
+                          <TextBlock Classes="settingsMuted" Text="Typeface" />
+                          <ComboBox
+                              AutomationProperties.Name="Reading typeface"
+                              ItemsSource="{Binding FontFamilies}"
+                              SelectedItem="{Binding SelectedFontFamily, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Spacing="7">
+                          <TextBlock Classes="settingsMuted" Text="Text alignment" />
+                          <ComboBox
+                              AutomationProperties.Name="Reading text alignment"
+                              ItemsSource="{Binding TextAlignments}"
+                              SelectedItem="{Binding SelectedTextAlignment, Mode=TwoWay}" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="15">
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Text size" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding ReaderFontSize, StringFormat={}{0:F0} pt}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Reading text size"
+                              Minimum="13"
+                              Maximum="34"
+                              Value="{Binding ReaderFontSize, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Line spacing" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding ReaderLineSpacing, StringFormat={}{0:F1}×}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Reading line spacing"
+                              Minimum="1.2"
+                              Maximum="2.2"
+                              Value="{Binding ReaderLineSpacing, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Paragraph spacing" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding ReaderParagraphSpacing, StringFormat={}{0:F0} px}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Reading paragraph spacing"
+                              Minimum="6"
+                              Maximum="40"
+                              Value="{Binding ReaderParagraphSpacing, Mode=TwoWay}" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="15">
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Column width" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding ReaderContentWidth, StringFormat={}{0:F0} px}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Reading column width"
+                              Minimum="480"
+                              Maximum="1080"
+                              Value="{Binding ReaderContentWidth, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Page margins" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding ReaderMargin, StringFormat={}{0:F0} px}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Reading page margins"
+                              Minimum="20"
+                              Maximum="96"
+                              Value="{Binding ReaderMargin, Mode=TwoWay}" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                </ScrollViewer>
+              </TabItem>
+
+              <TabItem
+                  AutomationProperties.Name="Text to speech settings tab"
+                  Header="Text to speech">
+                <ScrollViewer
+                    Padding="4,18,8,24"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                  <StackPanel Spacing="14">
+                    <StackPanel Spacing="4">
+                      <TextBlock Classes="settingsLabel" FontSize="18" Text="Text to speech" />
+                      <TextBlock
+                          Classes="settingsMuted"
+                          Text="Offline reading aloud using your installed Windows voices, licensed SAPI voices, or the bundled fallback engine."
+                          TextWrapping="Wrap" />
+                      <TextBlock
+                          Classes="settingsMuted"
+                          Text="{Binding VoiceProviderStatus}"
+                          TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="14">
+                        <StackPanel Spacing="7">
+                          <TextBlock Classes="settingsLabel" Text="Voice" />
+                          <ComboBox
+                              AutomationProperties.Name="Text to speech voice"
+                              ItemsSource="{Binding VoiceOptions}"
+                              SelectedItem="{Binding SelectedVoice, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                          <Button
+                              AutomationProperties.Name="Preview selected text to speech voice"
+                              Classes="primary"
+                              Command="{Binding PreviewVoiceCommand}"
+                              Content="Preview voice" />
+                          <Button
+                              Grid.Column="1"
+                              AutomationProperties.Name="Refresh installed text to speech voices"
+                              Classes="secondary"
+                              Command="{Binding RefreshVoicesCommand}"
+                              Content="Refresh voices" />
+                        </Grid>
+
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Reading speed" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding SpeechRate, StringFormat={}{0:F1}×}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Text to speech reading speed"
+                              Minimum="0.5"
+                              Maximum="2"
+                              Value="{Binding SpeechRate, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Reading volume" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding SpeechVolume, StringFormat={}{0:F0}%}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Text to speech reading volume"
+                              Minimum="0"
+                              Maximum="100"
+                              Value="{Binding SpeechVolume, Mode=TwoWay}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="7">
+                          <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="settingsLabel" Text="Reading pitch" />
+                            <TextBlock Grid.Column="1" Classes="settingsMuted" Text="{Binding SpeechPitch, StringFormat={}{0:F1}×}" />
+                          </Grid>
+                          <Slider
+                              AutomationProperties.Name="Text to speech reading pitch"
+                              Minimum="0.5"
+                              Maximum="2"
+                              Value="{Binding SpeechPitch, Mode=TwoWay}" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="7">
+                        <TextBlock Classes="settingsLabel" Text="Peter voice" />
+                        <TextBlock
+                            Classes="settingsMuted"
+                            LineHeight="19"
+                            Text="{Binding PeterStatus}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Classes="settingsMuted"
+                            FontSize="11"
+                            Text="OpenShelf never copies Peter or bypasses Acapela or Communicator licensing."
+                            TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="16">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <StackPanel Spacing="4">
+                            <TextBlock Classes="settingsLabel" Text="Highlight spoken sentence" />
+                            <TextBlock
+                                Classes="settingsMuted"
+                                Text="Show a temporary highlight on the sentence currently being read."
+                                TextWrapping="Wrap" />
+                          </StackPanel>
+                          <ToggleSwitch
+                              Grid.Column="1"
+                              VerticalAlignment="Center"
+                              AutomationProperties.Name="Highlight spoken sentence"
+                              IsChecked="{Binding HighlightSpokenSentence, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <StackPanel Spacing="4">
+                            <TextBlock Classes="settingsLabel" Text="Follow spoken sentence" />
+                            <TextBlock
+                                Classes="settingsMuted"
+                                Text="Move the reader to the active sentence and change pages as reading continues."
+                                TextWrapping="Wrap" />
+                          </StackPanel>
+                          <ToggleSwitch
+                              Grid.Column="1"
+                              VerticalAlignment="Center"
+                              AutomationProperties.Name="Follow spoken sentence"
+                              IsChecked="{Binding FollowSpokenSentence, Mode=TwoWay}" />
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="7">
+                        <TextBlock Classes="settingsLabel" Text="Start where you want" />
+                        <TextBlock
+                            Classes="settingsMuted"
+                            LineHeight="19"
+                            Text="Double-click a sentence in the reader to begin there. OpenShelf saves the spoken sentence for each book, so Read resumes from where that book left off."
+                            TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="7">
+                        <TextBlock Classes="settingsLabel" Text="Playback controls" />
+                        <TextBlock
+                            Classes="settingsMuted"
+                            LineHeight="19"
+                            Text="Use Read, Pause, Stop, Previous, and Next in the reader footer. Spoken-sentence progress is shown while playback is active."
+                            TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                </ScrollViewer>
+              </TabItem>
+
+              <TabItem
+                  AutomationProperties.Name="Hotkeys settings tab"
+                  Header="Hotkeys">
+                <ScrollViewer
+                    Padding="4,18,8,24"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                  <StackPanel Spacing="14">
+                    <StackPanel Spacing="4">
+                      <TextBlock Classes="settingsLabel" FontSize="18" Text="Keyboard shortcuts" />
+                      <TextBlock Classes="settingsMuted" Text="Shortcuts currently available throughout OpenShelf." />
+                    </StackPanel>
+
+                    <Border Classes="settingsCard">
+                      <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <TextBlock VerticalAlignment="Center" Text="Toggle fullscreen" />
+                          <Border Grid.Column="1" Classes="shortcutKey"><TextBlock Text="F11" /></Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <TextBlock VerticalAlignment="Center" Text="Close panel or exit fullscreen" />
+                          <Border Grid.Column="1" Classes="shortcutKey"><TextBlock Text="Esc" /></Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <TextBlock VerticalAlignment="Center" Text="Back to library" />
+                          <Border Grid.Column="1" Classes="shortcutKey"><TextBlock Text="Alt + Left" /></Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <TextBlock VerticalAlignment="Center" Text="Copy selected text" />
+                          <Border Grid.Column="1" Classes="shortcutKey"><TextBlock Text="Ctrl + C" /></Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <TextBlock VerticalAlignment="Center" Text="Add bookmark" />
+                          <Border Grid.Column="1" Classes="shortcutKey"><TextBlock Text="Ctrl + B" /></Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <TextBlock VerticalAlignment="Center" Text="Import book files" />
+                          <Border Grid.Column="1" Classes="shortcutKey"><TextBlock Text="Ctrl + O" /></Border>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                          <TextBlock VerticalAlignment="Center" Text="Import a folder" />
+                          <Border Grid.Column="1" Classes="shortcutKey"><TextBlock Text="Ctrl + Shift + O" /></Border>
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                </ScrollViewer>
+              </TabItem>
+
+            </TabControl>
+          </Grid>
+        </Border>
+      </Grid>
+
+      <Border
+          Grid.Row="2"
+          Padding="14,10"
+          Background="#F412151D"
+          BorderBrush="{DynamicResource OpenShelfBorder}"
+          BorderThickness="0,1,0,0">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Button
+                Height="36"
+                MinWidth="76"
+                Padding="12,0"
+                AutomationProperties.Name="Previous spoken sentence"
+                Classes="secondary"
+                Command="{Binding PreviousSpeechCommand}"
+                Content="Previous"
+                ToolTip.Tip="Previous spoken sentence" />
+            <Button
+                Height="36"
+                MinWidth="68"
+                Padding="12,0"
+                AutomationProperties.Name="{Binding SpeechStatus}"
+                Classes="primary"
+                Command="{Binding ToggleSpeechCommand}"
+                Content="{Binding SpeechActionLabel}"
+                ToolTip.Tip="{Binding SpeechStatus}" />
+            <Button
+                Height="36"
+                MinWidth="58"
+                Padding="12,0"
+                AutomationProperties.Name="Stop text to speech"
+                Classes="secondary"
+                Command="{Binding StopSpeechCommand}"
+                Content="Stop"
+                ToolTip.Tip="Stop text to speech" />
+            <Button
+                Height="36"
+                MinWidth="60"
+                Padding="12,0"
+                AutomationProperties.Name="Next spoken sentence"
+                Classes="secondary"
+                Command="{Binding NextSpeechCommand}"
+                Content="Next"
+                ToolTip.Tip="Next spoken sentence" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+            <TextBlock Classes="muted" FontSize="10" Text="VOICE" />
+            <ComboBox
+                Width="210"
+                AutomationProperties.Name="Text to speech voice"
+                ItemsSource="{Binding VoiceOptions}"
+                SelectedItem="{Binding SelectedVoice, Mode=TwoWay}" />
+          </StackPanel>
+
+          <Grid Grid.Column="2" RowDefinitions="Auto,Auto" VerticalAlignment="Center">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <TextBlock Classes="muted" VerticalAlignment="Center" FontSize="11" Text="Speed" />
+              <Slider
+                  Grid.Column="1"
+                  MinWidth="110"
+                  AutomationProperties.Name="Text to speech speed"
+                  Minimum="0.5"
+                  Maximum="2"
+                  Value="{Binding SpeechRate, Mode=TwoWay}" />
+            </Grid>
+            <TextBlock
+                Grid.Row="1"
+                Margin="0,3,0,0"
+                Classes="muted"
+                FontSize="11"
+                Text="{Binding SpeechProgressLabel}"
+                TextTrimming="CharacterEllipsis" />
+          </Grid>
+
+          <StackPanel Grid.Column="3" Width="150" Spacing="7" VerticalAlignment="Center">
+            <TextBlock
+                HorizontalAlignment="Right"
+                Classes="muted"
+                FontSize="12"
+                Text="{Binding ReadingProgressSummary}"
+                TextWrapping="Wrap" />
+            <ProgressBar
+                Height="5"
+                Maximum="100"
+                Value="{Binding ReadingProgressPercent}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- IMPORT DRAWER -->
+    <Grid IsVisible="{Binding IsImportPanelOpen}">
+      <Border Background="#B0000000" />
+      <Border
+          Width="470"
+          Padding="24"
+          HorizontalAlignment="Right"
+          Background="{DynamicResource OpenShelfSurface}"
+          BorderBrush="{DynamicResource OpenShelfBorder}"
+          BorderThickness="1,0,0,0">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Classes="eyebrow" Text="IMPORT" />
+              <TextBlock Margin="0,5,0,0" FontSize="24" FontWeight="Bold" Text="Add to OpenShelf" />
+            </StackPanel>
+            <Button
+                Grid.Column="1"
+                Width="36"
+                Height="36"
+                Padding="0"
+                AutomationProperties.Name="Close import"
+                Classes="ghost"
+                Command="{Binding CloseImportCommand}"
+                Content="×" />
+          </Grid>
+
+          <TextBlock
+              Grid.Row="1"
+              Margin="0,20,0,8"
+              FontSize="14"
+              FontWeight="SemiBold"
+              Text="{Binding ImportStatus}"
+              TextWrapping="Wrap" />
+          <TextBlock
+              Grid.Row="2"
+              Classes="muted"
+              FontSize="12"
+              Text="{Binding ImportSummary}"
+              TextWrapping="Wrap" />
+          <ProgressBar
+              Grid.Row="3"
+              Height="6"
+              Margin="0,14,0,18"
+              IsIndeterminate="{Binding IsImportIndeterminate}"
+              Maximum="100"
+              Value="{Binding ImportProgressValue}" />
+
+          <Grid Grid.Row="4">
+            <StackPanel
+                IsVisible="{Binding !IsImportResultsVisible}"
+                Spacing="11">
+              <Button
+                  AutomationProperties.Name="Choose ebook files"
+                  Classes="primary"
+                  Click="ImportFiles_Click"
+                  Content="＋  Choose book files" />
+              <Button
+                  AutomationProperties.Name="Choose ebook folder"
+                  Classes="secondary"
+                  Click="ImportFolder_Click"
+                  Content="▤  Choose a folder" />
+              <Border Margin="0,10,0,0" Padding="14" Background="#20FFFFFF" CornerRadius="10">
+                <StackPanel Spacing="7">
+                  <TextBlock FontWeight="SemiBold" Text="Private by design" />
+                  <TextBlock
+                      Classes="muted"
+                      FontSize="12"
+                      LineHeight="18"
+                      Text="OpenShelf only reads the files and folders you choose. Nothing is uploaded."
+                      TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <ListBox
+                ItemsSource="{Binding ImportResults}"
+                IsVisible="{Binding IsImportResultsVisible}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ImportResultItemViewModel">
+                  <Border
+                      Margin="0,0,0,7"
+                      Padding="11"
+                      Background="#20FFFFFF"
+                      CornerRadius="9">
+                    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto">
+                      <TextBlock
+                          Margin="0,0,10,0"
+                          Foreground="{DynamicResource OpenShelfAccentStrong}"
+                          Text="{Binding Glyph}" />
+                      <TextBlock
+                          Grid.Column="1"
+                          FontSize="12"
+                          FontWeight="SemiBold"
+                          Text="{Binding Name}"
+                          TextTrimming="CharacterEllipsis" />
+                      <Button
+                          Grid.Column="2"
+                          Padding="9,4"
+                          AutomationProperties.Name="Enter book password"
+                          Classes="secondary"
+                          Command="{ReflectionBinding DataContext.OpenPasswordPromptCommand, ElementName=RootWindow}"
+                          CommandParameter="{Binding}"
+                          Content="Unlock"
+                          FontSize="11"
+                          IsVisible="{Binding RequiresPassword}" />
+                      <TextBlock
+                          Grid.Row="1"
+                          Grid.Column="1"
+                          Grid.ColumnSpan="2"
+                          Margin="0,3,0,0"
+                          Classes="muted"
+                          FontSize="11"
+                          Text="{Binding Message}"
+                          TextWrapping="Wrap" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+
+          <Grid Grid.Row="5" Margin="0,16,0,0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+            <Button
+                Classes="secondary"
+                Command="{Binding CancelImportCommand}"
+                Content="Cancel import"
+                IsVisible="{Binding IsImporting}" />
+            <Button
+                Grid.Column="1"
+                Classes="primary"
+                Command="{Binding CloseImportCommand}"
+                Content="Done"
+                IsVisible="{Binding IsImportResultsVisible}" />
+          </Grid>
+        </Grid>
+      </Border>
+    </Grid>
+
+    <!-- HELP / DIAGNOSTICS DRAWER -->
+    <Grid IsVisible="{Binding IsHelpOpen}">
+      <Border Background="#B0000000" />
+      <Border
+          Width="480"
+          Padding="26"
+          HorizontalAlignment="Right"
+          Background="{DynamicResource OpenShelfSurface}"
+          BorderBrush="{DynamicResource OpenShelfBorder}"
+          BorderThickness="1,0,0,0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="18">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel>
+                <TextBlock Classes="eyebrow" Text="HELP" />
+                <TextBlock Margin="0,5,0,0" FontSize="24" FontWeight="Bold" Text="Help &amp; diagnostics" />
+              </StackPanel>
+              <Button
+                  Grid.Column="1"
+                  Width="36"
+                  Height="36"
+                  Padding="0"
+                  AutomationProperties.Name="Close help"
+                  Classes="ghost"
+                  Command="{Binding ToggleHelpCommand}"
+                  Content="×" />
+            </Grid>
+
+            <Border Classes="panel" Padding="16">
+              <StackPanel Spacing="9">
+                <TextBlock FontSize="16" FontWeight="SemiBold" Text="Privacy-first diagnostics" />
+                <TextBlock
+                    Classes="muted"
+                    FontSize="12"
+                    LineHeight="18"
+                    Text="The diagnostic snapshot below contains app and system details only. Book titles, paths, contents, notes, and reading history are never included."
+                    TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="8">
+              <TextBlock FontSize="16" FontWeight="SemiBold" Text="Diagnostic snapshot" />
+              <Border
+                  Padding="14"
+                  Background="#B50B0D12"
+                  BorderBrush="{DynamicResource OpenShelfBorder}"
+                  BorderThickness="1"
+                  CornerRadius="10">
+                <SelectableTextBlock
+                    AutomationProperties.Name="Diagnostic information"
+                    FontFamily="Cascadia Mono, Consolas, monospace"
+                    FontSize="11"
+                    Foreground="{DynamicResource OpenShelfMuted}"
+                    Text="{Binding DiagnosticsText}"
+                    TextWrapping="Wrap" />
+              </Border>
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button
+                    Classes="secondary"
+                    Click="RefreshDiagnostics_Click"
+                    Content="Refresh" />
+                <Button
+                    Grid.Column="1"
+                    Classes="secondary"
+                    Click="CopyDiagnostics_Click"
+                    Content="Copy diagnostics" />
+              </Grid>
+            </StackPanel>
+
+            <Border Padding="14" Background="#20FFFFFF" CornerRadius="10">
+              <StackPanel Spacing="7">
+                <TextBlock FontWeight="SemiBold" Text="Keyboard shortcuts" />
+                <TextBlock
+                    Classes="muted"
+                    FontSize="12"
+                    LineHeight="20"
+                    Text="F11  Fullscreen&#10;Esc  Exit fullscreen or close panel&#10;Ctrl+O  Add books&#10;Ctrl+Shift+O  Add folder&#10;Ctrl+B  Add bookmark&#10;Ctrl+C  Copy selected text&#10;Alt+Left  Back to library" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+
+    <!-- BOOK DETAILS -->
+    <Grid IsVisible="{Binding IsBookEditorOpen}">
+      <Border Background="#B8000000" />
+      <Border
+          Width="470"
+          Padding="24"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Classes="panel">
+        <StackPanel Spacing="15">
+          <StackPanel>
+            <TextBlock Classes="eyebrow" Text="BOOK DETAILS" />
+            <TextBlock Margin="0,4,0,0" FontSize="23" FontWeight="Bold" Text="Edit your library copy" />
+            <TextBlock
+                Margin="0,7,0,0"
+                Classes="muted"
+                FontSize="12"
+                Text="The original ebook file is never changed."
+                TextWrapping="Wrap" />
+          </StackPanel>
+          <StackPanel Spacing="6">
+            <TextBlock Classes="muted" FontSize="12" Text="Title" />
+            <TextBox
+                AutomationProperties.Name="Book title"
+                Text="{Binding EditingTitle, Mode=TwoWay}" />
+          </StackPanel>
+          <StackPanel Spacing="6">
+            <TextBlock Classes="muted" FontSize="12" Text="Author" />
+            <TextBox
+                AutomationProperties.Name="Book author"
+                Text="{Binding EditingAuthor, Mode=TwoWay}" />
+          </StackPanel>
+          <StackPanel Spacing="6">
+            <TextBlock Classes="muted" FontSize="12" Text="Category" />
+            <ComboBox
+                AutomationProperties.Name="Book category"
+                ItemsSource="{Binding CategoryNames}"
+                SelectedItem="{Binding EditingCategory, Mode=TwoWay}" />
+          </StackPanel>
+          <Grid Margin="0,6,0,0" ColumnDefinitions="*,*" ColumnSpacing="9">
+            <Button
+                Classes="secondary"
+                Command="{Binding CancelBookEditorCommand}"
+                Content="Cancel" />
+            <Button
+                Grid.Column="1"
+                Classes="primary"
+                Command="{Binding SaveBookEditorCommand}"
+                Content="Save changes" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- NOTE COMPOSER -->
+    <Grid IsVisible="{Binding IsNoteComposerOpen}">
+      <Border Background="#B8000000" />
+      <Border
+          Width="520"
+          Padding="24"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Classes="panel">
+        <StackPanel Spacing="14">
+          <StackPanel>
+            <TextBlock Classes="eyebrow" Text="NEW NOTE" />
+            <TextBlock Margin="0,5,0,0" FontSize="22" FontWeight="Bold" Text="Add a thought" />
+          </StackPanel>
+          <Border Padding="12" Background="#20FFFFFF" CornerRadius="9">
+            <TextBlock
+                MaxLines="4"
+                Classes="muted"
+                FontSize="12"
+                Text="{Binding SelectionPreview}"
+                TextWrapping="Wrap" />
+          </Border>
+          <TextBox
+              x:Name="NoteTextBox"
+              MinHeight="130"
+              AcceptsReturn="True"
+              AutomationProperties.Name="Note text"
+              Text="{Binding PendingNoteText, Mode=TwoWay}"
+              TextWrapping="Wrap"
+              PlaceholderText="Write your note…" />
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="9">
+            <Button Classes="secondary" Command="{Binding CancelNoteCommand}" Content="Cancel" />
+            <Button Grid.Column="1" Classes="primary" Command="{Binding SaveNoteCommand}" Content="Save note" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- PASSWORD-PROTECTED IMPORT -->
+    <Grid IsVisible="{Binding IsPasswordPromptOpen}">
+      <Border Background="#C4000000" />
+      <Border
+          Width="460"
+          Padding="24"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Classes="panel">
+        <StackPanel Spacing="15">
+          <StackPanel>
+            <TextBlock Classes="eyebrow" Text="PASSWORD REQUIRED" />
+            <TextBlock
+                Margin="0,5,0,0"
+                FontSize="22"
+                FontWeight="Bold"
+                Text="{Binding PasswordBookName}"
+                TextTrimming="CharacterEllipsis" />
+            <TextBlock
+                Margin="0,8,0,0"
+                Classes="muted"
+                FontSize="12"
+                LineHeight="18"
+                Text="Enter the book password to retry. The password is used only for this attempt and is never saved."
+                TextWrapping="Wrap" />
+          </StackPanel>
+          <TextBox
+              x:Name="ImportPasswordBox"
+              AutomationProperties.Name="Book password"
+              PasswordChar="●"
+              PlaceholderText="Book password"
+              Text="{Binding ImportPassword, Mode=TwoWay}" />
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="9">
+            <Button
+                Classes="secondary"
+                Command="{Binding CancelPasswordPromptCommand}"
+                Content="Cancel" />
+            <Button
+                Grid.Column="1"
+                Classes="primary"
+                Command="{Binding RetryPasswordCommand}"
+                Content="Unlock &amp; import" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- PASSWORD-PROTECTED READER OPEN -->
+    <Grid IsVisible="{Binding IsReaderPasswordPromptOpen}">
+      <Border Background="#C4000000" />
+      <Border
+          Width="460"
+          Padding="24"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Classes="panel">
+        <StackPanel Spacing="15">
+          <StackPanel>
+            <TextBlock Classes="eyebrow" Text="OPEN PROTECTED BOOK" />
+            <TextBlock
+                Margin="0,5,0,0"
+                FontSize="22"
+                FontWeight="Bold"
+                Text="{Binding ReaderPasswordBookName}"
+                TextTrimming="CharacterEllipsis" />
+            <TextBlock
+                Margin="0,8,0,0"
+                Classes="muted"
+                FontSize="12"
+                LineHeight="18"
+                Text="This book requires its password each time it is opened. OpenShelf uses it only for this reading session and never saves it."
+                TextWrapping="Wrap" />
+          </StackPanel>
+          <TextBox
+              x:Name="ReaderPasswordBox"
+              AutomationProperties.Name="Reader book password"
+              PasswordChar="●"
+              PlaceholderText="Book password"
+              Text="{Binding ReaderPassword, Mode=TwoWay}" />
+          <Grid ColumnDefinitions="*,*" ColumnSpacing="9">
+            <Button
+                Classes="secondary"
+                Command="{Binding CancelReaderPasswordCommand}"
+                Content="Cancel" />
+            <Button
+                Grid.Column="1"
+                Classes="primary"
+                Command="{Binding RetryReaderPasswordCommand}"
+                Content="Open book" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- IMAGE ZOOM -->
+    <Grid
+        x:Name="ImageZoomOverlay"
+        Background="#E9000000"
+        IsVisible="False"
+        PointerPressed="ImageZoomOverlay_PointerPressed">
+      <Grid Margin="40">
+        <Image
+            x:Name="ZoomedReaderImage"
+            AutomationProperties.Name="Expanded ebook image"
+            Stretch="Uniform" />
+        <Button
+            Width="42"
+            Height="42"
+            Padding="0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            AutomationProperties.Name="Close expanded image"
+            Classes="icon"
+            Click="CloseImageZoom_Click"
+            Content="×" />
+      </Grid>
+    </Grid>
+
+    <!-- STATUS TOAST -->
+    <Border
+        Margin="24"
+        Padding="14,10"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Bottom"
+        Background="#F01B1F29"
+        BorderBrush="{DynamicResource OpenShelfBorder}"
+        BorderThickness="1"
+        CornerRadius="12"
+        IsVisible="{Binding IsStatusVisible}">
+      <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="12">
+        <TextBlock VerticalAlignment="Center" Text="{Binding StatusMessage}" />
+        <Button
+            Grid.Column="1"
+            Width="26"
+            Height="26"
+            Padding="0"
+            AutomationProperties.Name="Dismiss status"
+            Classes="ghost"
+            Click="DismissStatus_Click"
+            Content="×" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

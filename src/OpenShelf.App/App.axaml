@@ -1,0 +1,37 @@
+<Application
+    x:Class="OpenShelf.App.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    RequestedThemeVariant="Dark">
+  <Application.Resources>
+    <ResourceDictionary>
+      <Color x:Key="OpenShelfCanvasColor">#0B0D12</Color>
+      <Color x:Key="OpenShelfSurfaceColor">#12151D</Color>
+      <Color x:Key="OpenShelfSurfaceRaisedColor">#191D27</Color>
+      <Color x:Key="OpenShelfBorderColor">#2A3040</Color>
+      <Color x:Key="OpenShelfTextColor">#F5F7FB</Color>
+      <Color x:Key="OpenShelfMutedColor">#9CA5B8</Color>
+      <Color x:Key="OpenShelfAccentColor">#9C7BFF</Color>
+      <Color x:Key="OpenShelfAccentStrongColor">#B39BFF</Color>
+      <Color x:Key="OpenShelfSuccessColor">#48D597</Color>
+      <Color x:Key="OpenShelfWarningColor">#FFCB6B</Color>
+      <Color x:Key="OpenShelfDangerColor">#FF7389</Color>
+
+      <SolidColorBrush x:Key="OpenShelfCanvas" Color="{StaticResource OpenShelfCanvasColor}" />
+      <SolidColorBrush x:Key="OpenShelfSurface" Color="{StaticResource OpenShelfSurfaceColor}" />
+      <SolidColorBrush x:Key="OpenShelfSurfaceRaised" Color="{StaticResource OpenShelfSurfaceRaisedColor}" />
+      <SolidColorBrush x:Key="OpenShelfBorder" Color="{StaticResource OpenShelfBorderColor}" />
+      <SolidColorBrush x:Key="OpenShelfText" Color="{StaticResource OpenShelfTextColor}" />
+      <SolidColorBrush x:Key="OpenShelfMuted" Color="{StaticResource OpenShelfMutedColor}" />
+      <SolidColorBrush x:Key="OpenShelfAccent" Color="{StaticResource OpenShelfAccentColor}" />
+      <SolidColorBrush x:Key="OpenShelfAccentStrong" Color="{StaticResource OpenShelfAccentStrongColor}" />
+      <SolidColorBrush x:Key="OpenShelfSuccess" Color="{StaticResource OpenShelfSuccessColor}" />
+      <SolidColorBrush x:Key="OpenShelfWarning" Color="{StaticResource OpenShelfWarningColor}" />
+      <SolidColorBrush x:Key="OpenShelfDanger" Color="{StaticResource OpenShelfDangerColor}" />
+    </ResourceDictionary>
+  </Application.Resources>
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://OpenShelfReader/Styles/OpenShelfTheme.axaml" />
+  </Application.Styles>
+</Application>
